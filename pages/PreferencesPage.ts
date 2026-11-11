@@ -60,9 +60,19 @@ export class PreferencesPage {
   }
 
   async setInterfaceLanguage(langCode: string): Promise<void> {
-    await this.languageField.fill(langCode);
+    await expect(this.languageField).not.toHaveValue('');
+    await this.languageField.focus();
+    await this.languageField.fill('');
+    await this.languageField.pressSequentially(langCode);
+
     const escapedCode = langCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    await this.languageOptions.filter({ hasText: new RegExp(`^${escapedCode}\\s*·`, 'i') }).click();
+    const languagePattern = new RegExp(`^${escapedCode}\\s*·`, 'i');
+    const totalLanguages = await this.languageSelect.locator('option').count();
+    // Wait for the debounced search to replace the initial, unfiltered menu.
+    await expect(this.languageOptions).not.toHaveCount(totalLanguages);
+    await expect(this.languageOptions.first()).toHaveText(languagePattern);
+    await this.languageField.press('ArrowDown');
+    await this.languageField.press('Enter');
     await expect(this.languageSelect).toHaveValue(langCode);
     await this.save();
     await expect(this.languageSelect).toHaveValue(langCode);
