@@ -1,0 +1,14 @@
+services:
+  tests:
+    build: .
+    container_name: wiki-playwright-tests
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+      - ./auth:/app/auth
+
+    command: ["npx", "playwright", "test"]
