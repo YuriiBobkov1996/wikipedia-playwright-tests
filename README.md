@@ -119,6 +119,10 @@ the session, within the overall 60-second test timeout.
 Authentication traces and videos are disabled to avoid recording login inputs.
 The `.env` file and saved authentication state are ignored by Git.
 
+Language tests retain a Playwright trace when they fail, even without retries.
+Open the HTML report to inspect the trace alongside screenshots and videos.
+Traces for successful tests are discarded; authentication tracing remains disabled.
+
 🧩 Test fixtures and account state
 
 `fixtures/test.ts` extends Playwright's `test` with a test-scoped `preferencesPage`
