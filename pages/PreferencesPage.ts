@@ -3,19 +3,22 @@ import { URLs } from './constants/urls';
 
 export class PreferencesPage {
   readonly page: Page;
-  readonly languageField: Locator;   
+  readonly languageField: Locator;
   readonly languageSelect: Locator;
+  readonly languageOptions: Locator;
   readonly saveButton: Locator;
   readonly userProfileTabSelected: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
-    this.languageField = page.locator('#mw-input-wplanguage');
+    const languageWidget = page.locator('.mw-widgets-languageSelectWidget-vue-container');
+    this.languageField = languageWidget.getByRole('combobox');
     this.languageSelect = page.locator('select[name="wplanguage"]');
+    this.languageOptions = languageWidget.getByRole('option');
     this.saveButton = page.locator('#preferences button[type="submit"]');
     this.userProfileTabSelected = page.getByRole('tab', {
-      name: /User profile|Профіль користувача/i,
+      name: /^(User profile|Особові дані|Профіль користувача)$/i,
       selected: true,
     });
   }
@@ -28,13 +31,10 @@ export class PreferencesPage {
   }
 
   async assertUserProfileTabIsActive(): Promise<void> {
-    if (await this.userProfileTabSelected.count()) {
-      await expect(this.userProfileTabSelected).toBeVisible();
-    }
+    await expect(this.userProfileTabSelected).toBeVisible();
   }
 
   async getCurrentLangCode(): Promise<string> {
-    // value у select: 'en', 'uk', ...
     return await this.languageSelect.inputValue();
   }
 
@@ -42,21 +42,22 @@ export class PreferencesPage {
     await expect(this.saveButton).toBeEnabled();
 
     await Promise.all([
-      this.page.waitForLoadState('domcontentloaded'),
+      this.page.waitForResponse((response) =>
+        response.request().isNavigationRequest() && response.request().method() === 'POST'
+      ),
       this.saveButton.click(),
     ]);
     await expect(this.languageField).toBeVisible();
     await expect(this.languageSelect).toHaveCount(1);
+    await expect(this.saveButton).toBeDisabled();
   }
 
   async setInterfaceLanguage(langCode: 'en' | 'uk'): Promise<void> {
-    await expect(this.languageSelect).toHaveCount(1);
-    await this.languageSelect.selectOption(langCode, { force: true });
+    await this.languageField.fill(langCode);
+    await this.languageOptions.filter({ hasText: new RegExp(`^${langCode}\\s*·`) }).click();
+    await expect(this.languageSelect).toHaveValue(langCode);
     await this.save();
-    await expect(this.page.locator('html')).toHaveAttribute(
-      'lang',
-      new RegExp(`^${langCode}(-|$)`, 'i')
-    );
+    await this.assertInterfaceLanguageIs(langCode);
   }
 
   async ensureInterfaceLanguage(langCode: 'en' | 'uk'): Promise<void> {
