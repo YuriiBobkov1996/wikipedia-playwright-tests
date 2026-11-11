@@ -51,11 +51,18 @@ including when the test fails.
 
 ### 1️⃣ Install dependencies
 
+For local runs, install Node.js and npm, then install the project dependencies
+and Chromium:
+
 ```bash
 npm ci
+npx playwright install chromium
 ```
 
-2️⃣ Create .env file in project root (do not commit)
+The Docker image already includes Chromium and its system dependencies.
+
+2️⃣ Copy `.env.example` to `.env` in the project root and fill in your Wikipedia
+username and password. Keep `.env` local; the template contains no credentials.
 
 Example:
 
@@ -72,7 +79,7 @@ Credentials are read from process.env and must not be committed to the repositor
 Check TypeScript types before running tests:
 
 ```bash
-npx tsc --noEmit
+npm run typecheck
 ```
 
 The strict TypeScript configuration checks project sources without generating
@@ -81,19 +88,19 @@ JavaScript files. Playwright transforms TypeScript but does not check types itse
 Run all tests:
 
 ```bash
-npx playwright test
+npm test
 ```
 
 Run in headed mode (debug):
 
 ```bash
-npx playwright test --headed
+npm run test:headed
 ```
 
 Open HTML report after execution:
 
 ```bash
-npx playwright show-report
+npm run report
 ```
 
 🔐 Authentication (storageState)
@@ -111,13 +118,13 @@ Both projects are included in the HTML report.
 Run only authentication:
 
 ```bash
-npx playwright test --project=setup
+npm test -- --project=setup
 ```
 
 To inspect authentication locally with a visible browser:
 
 ```bash
-npx playwright test --project=setup --headed
+npm run test:headed -- --project=setup
 ```
 
 Normal local and Docker runs are headless. Login must succeed without manual
@@ -156,32 +163,36 @@ Parallel runs would require separate accounts per worker.
 🐳 Run tests in Docker
 Requirements
 
-Docker Desktop (or Docker Engine)
+Docker Desktop (or Docker Engine), with the Docker engine running
 
-docker-compose
+Docker Compose v2
 
 Build image and run tests
 
 ```bash
-docker-compose up --build
+docker compose up --build --abort-on-container-exit --exit-code-from tests
 ```
 
 If the image is already built and no changes were made:
 
 ```bash
-docker-compose up
+docker compose up --abort-on-container-exit --exit-code-from tests
 ```
 
 Stop containers:
 
 ```bash
-docker-compose down
+docker compose down
 ```
+
+`--exit-code-from tests` returns the test service's exit code, allowing the shell
+or CI to detect a failed run.
 
 📊 HTML report on host machine
 
 Playwright generates an HTML report inside the Docker container.
 Using Docker volumes, the report is automatically available on the host machine.
+The report remains on the host after `docker compose down` removes the container.
 
 After test execution, open:
 
@@ -204,6 +215,8 @@ tests/auth.setup.ts — Authentication setup project (login + storageState)
 config/auth.ts — Shared authentication state path
 
 tsconfig.json — Strict TypeScript checks without generating JavaScript files
+
+.env.example — Environment variable template without credentials
 
 playwright.config.ts — Playwright configuration
 
