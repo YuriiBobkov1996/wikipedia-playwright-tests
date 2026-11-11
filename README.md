@@ -69,6 +69,15 @@ Credentials are read from process.env and must not be committed to the repositor
 
 ▶️ Run tests locally
 
+Check TypeScript types before running tests:
+
+```bash
+npx tsc --noEmit
+```
+
+The strict TypeScript configuration checks project sources without generating
+JavaScript files. Playwright transforms TypeScript but does not check types itself.
+
 Run all tests:
 
 ```bash
@@ -193,6 +202,8 @@ tests/ — Test specifications
 tests/auth.setup.ts — Authentication setup project (login + storageState)
 
 config/auth.ts — Shared authentication state path
+
+tsconfig.json — Strict TypeScript checks without generating JavaScript files
 
 playwright.config.ts — Playwright configuration
 
