@@ -21,12 +21,15 @@ Automation project for verifying that an **authorized Wikipedia user** can chang
 2. In **User profile** tab, locate **Internationalisation** section.
 3. Change **Interface language** from **English** to **Ukrainian**.
 4. Click **Save** button.
+5. Reload the page.
 
 ### Expected result
 
 - Wikipedia interface is displayed in Ukrainian.
 - `<html lang>` attribute starts with `uk`.
-- UI elements are localized.
+- The Save button is displayed as **Зберегти**.
+- The selected language, `<html lang>`, and localized button label remain Ukrainian
+  after a page reload.
 
 ### Cleanup
 
@@ -126,8 +129,9 @@ The setter supports Wikipedia language codes beyond English and Ukrainian, so
 cleanup can restore another original language as well.
 
 The test itself only switches to Ukrainian and checks the resulting interface
-language. Page Object methods perform interactions and synchronization; the
-test owns the expected-result assertion.
+language, selected preference, and translated Save button. It reloads the page
+and repeats these checks to verify persistence. Page Object methods perform
+interactions and synchronization; the test owns the expected-result assertion.
 
 The User profile tab is checked through its `aria-controls` relationship with the
 panel containing the language field, without depending on translated tab names.

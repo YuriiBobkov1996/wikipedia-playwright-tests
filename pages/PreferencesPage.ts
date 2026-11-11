@@ -75,9 +75,13 @@ export class PreferencesPage {
   }
 
   async assertInterfaceLanguageIs(lang: 'en' | 'uk'): Promise<void> {
+    const saveButtonLabels = { en: 'Save', uk: 'Зберегти' };
+
     await expect(this.page.locator('html')).toHaveAttribute(
       'lang',
       new RegExp(`^${lang}(-|$)`, 'i')
     );
+    await expect(this.languageSelect).toHaveValue(lang);
+    await expect(this.saveButton).toHaveAccessibleName(saveButtonLabels[lang]);
   }
 }
