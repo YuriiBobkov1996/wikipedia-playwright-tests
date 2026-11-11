@@ -80,11 +80,35 @@ npx playwright show-report
 
 🔐 Authentication (storageState)
 
-The project uses globalSetup to perform login once and save authentication state to:
+The `setup` Playwright project uses the built-in `page` fixture to log in once per run.
+It starts with a clean browser context and confirms the session via Wikipedia's
+`userinfo` API before saving authentication state to:
 
 auth/auth.json
 
-This approach speeds up test execution and ensures tests start already authorized.
+The `chromium` project depends on `setup` and loads this state, so the language test
+starts already authorized. If authentication fails, the language test is skipped.
+Both projects are included in the HTML report.
+
+Run only authentication:
+
+```bash
+npx playwright test --project=setup
+```
+
+To inspect authentication locally with a visible browser:
+
+```bash
+npx playwright test --project=setup --headed
+```
+
+Normal local and Docker runs are headless. Login must succeed without manual
+interaction; if Wikipedia requires CAPTCHA or email verification, resolve that
+account challenge manually and rerun. The setup waits up to 30 seconds to confirm
+the session, within the overall 60-second test timeout.
+
+Authentication traces and videos are disabled to avoid recording login inputs.
+The `.env` file and saved authentication state are ignored by Git.
 
 🐳 Run tests in Docker
 Requirements
@@ -130,7 +154,9 @@ pages/ — Page Objects
 
 tests/ — Test specifications
 
-scripts/login.setup.ts — Global setup (login + storageState)
+tests/auth.setup.ts — Authentication setup project (login + storageState)
+
+config/auth.ts — Shared authentication state path
 
 playwright.config.ts — Playwright configuration
 

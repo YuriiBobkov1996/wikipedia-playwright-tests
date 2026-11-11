@@ -1,5 +1,6 @@
 import { defineConfig } from '@playwright/test';
 import * as dotenv from 'dotenv';
+import { AUTH_FILE } from './config/auth';
 
 dotenv.config({ quiet: true });
 
@@ -11,11 +12,8 @@ export default defineConfig({
     timeout: 15_000,
   },
 
-  globalSetup: './scripts/login.setup.ts',
-
   use: {
     baseURL: process.env.BASE_URL || 'https://en.wikipedia.org',
-    storageState: 'auth/auth.json',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -23,8 +21,22 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts$/,
+      use: {
+        browserName: 'chromium',
+        trace: 'off',
+        video: 'off',
+      },
+    },
+    {
       name: 'chromium',
-      use: { browserName: 'chromium' },
+      testMatch: '**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        browserName: 'chromium',
+        storageState: AUTH_FILE,
+      },
     },
   ],
   reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }]],
