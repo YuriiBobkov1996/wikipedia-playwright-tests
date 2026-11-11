@@ -13,6 +13,7 @@ Automation project for verifying that an **authorized Wikipedia user** can chang
 
 - User has a valid Wikipedia account.
 - User is authorized (logged in).
+- Interface language is English (prepared automatically by the fixture).
 
 ### Steps
 
@@ -26,6 +27,11 @@ Automation project for verifying that an **authorized Wikipedia user** can chang
 - Wikipedia interface is displayed in Ukrainian.
 - `<html lang>` attribute starts with `uk`.
 - UI elements are localized.
+
+### Cleanup
+
+The fixture restores the account's original interface language after the test,
+including when the test fails.
 
 ---
 
@@ -110,6 +116,26 @@ the session, within the overall 60-second test timeout.
 Authentication traces and videos are disabled to avoid recording login inputs.
 The `.env` file and saved authentication state are ignored by Git.
 
+🧩 Test fixtures and account state
+
+`fixtures/test.ts` extends Playwright's `test` with a test-scoped `preferencesPage`
+fixture. It opens Preferences, checks the active User profile tab, remembers the
+original language, and prepares English before handing the page to the test.
+Its `finally` block reopens Preferences and restores the original language.
+The setter supports Wikipedia language codes beyond English and Ukrainian, so
+cleanup can restore another original language as well.
+
+The test itself only switches to Ukrainian and checks the resulting interface
+language. Page Object methods perform interactions and synchronization; the
+test owns the expected-result assertion.
+
+The User profile tab is checked through its `aria-controls` relationship with the
+panel containing the language field, without depending on translated tab names.
+
+The configuration uses `workers: 1` because all tests share an account and change
+server-side preferences. Separate browser contexts do not isolate those settings.
+Parallel runs would require separate accounts per worker.
+
 🐳 Run tests in Docker
 Requirements
 
@@ -151,6 +177,8 @@ Artifacts such as screenshots, videos, and traces (if enabled) are stored on hos
 🗂️ Project structure (high level)
 
 pages/ — Page Objects
+
+fixtures/test.ts — Page Object fixture, English precondition, and original-language cleanup
 
 tests/ — Test specifications
 

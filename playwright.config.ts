@@ -6,6 +6,8 @@ dotenv.config({ quiet: true });
 
 export default defineConfig({
   testDir: './tests',
+  // Tests change server-side preferences on a shared Wikipedia account.
+  workers: 1,
 
   timeout: 60_000,
   expect: {
